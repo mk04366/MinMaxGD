@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __VARS_H__
 #define __VARS_H__
-//#include "gd.h"
+// #include "gd.h"
 namespace mmgd
 {
 	int forcage = 0;

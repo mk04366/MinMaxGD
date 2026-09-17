@@ -33,30 +33,24 @@ namespace mmgd
 			if (this->Data != NULL)
 			{
 				delete[] Data;
-
 			}
 
 			Data = new Ttriplet[capacity];
 		}
 		if (this->Data == NULL)
 		{
-			mem_limite  l(15);   throw(l);
+			mem_limite l(15);
+			throw(l);
 		}
-
-
-
 
 		for (i = 0; i < size; i++)
 		{
 			this->Data[i].s = list.Data[i].s;
 
-
 			Data[i].i = list.Data[i].i;
 			Data[i].j = list.Data[i].j;
 		}
-
 	}
-
 
 	// constructeur par defaut de la classe smatrix (matrice 1x1 contenant
 	// epsilon)
@@ -68,10 +62,7 @@ namespace mmgd
 		capacity = 0;
 
 		this->Data = NULL;
-
 	}
-
-
 
 	matrixCOO::matrixCOO(int i, int j) // constructeur initialisant
 	{
@@ -83,48 +74,35 @@ namespace mmgd
 		this->Data = NULL;
 	}
 
-
-	matrixCOO::matrixCOO(const matrixCOO & a)	// constructeur initialisation par une autre matrice
+	matrixCOO::matrixCOO(const matrixCOO &a) // constructeur initialisation par une autre matrice
 	{
-
-
 
 		affecte((matrixCOO &)a);
 	}
 
-
-
-	matrixCOO::matrixCOO(const serie & a)	// constructeur initialisation par une serie
+	matrixCOO::matrixCOO(const serie &a) // constructeur initialisation par une serie
 	{
-
-
 	}
 
-	matrixCOO::matrixCOO(poly & a)	// constructeur initialisation par un polyn�e
+	matrixCOO::matrixCOO(poly &a) // constructeur initialisation par un polyn�e
 	{
-
 	}
 
-	matrixCOO::matrixCOO(gd & a)	// constructeur initialisation par un monome
+	matrixCOO::matrixCOO(gd &a) // constructeur initialisation par un monome
 	{
-
 	}
 
-	matrixCOO :: ~matrixCOO()	// destructeur
+	matrixCOO::~matrixCOO() // destructeur
 	{
 		int n;
 
-
 		delete[] Data;
-
 
 		row = 0;
 		col = 0;
 		size = 0;
 		capacity = 0;
 		Data = NULL;
-
-
 	}
 
 	int matrixCOO::matrixCOO::geti(int k)
@@ -142,39 +120,42 @@ namespace mmgd
 	int matrixCOO::comp(int ai, int aj, int bi, int bj)
 	{
 
-		if (ai > bi) return 1;
+		if (ai > bi)
+			return 1;
 		else
 		{
-			if (ai < bi) return -1;
+			if (ai < bi)
+				return -1;
 			else
 			{
-				if (aj > bj) return 1;
+				if (aj > bj)
+					return 1;
 				else
 				{
-					if (aj < bj) return -1;
-					else return 0;
+					if (aj < bj)
+						return -1;
+					else
+						return 0;
 				}
 			}
 		}
-
 	}
-	void matrixCOO::pushback(Ttriplet & newdata)
+	void matrixCOO::pushback(Ttriplet &newdata)
 	{
-		Ttriplet * newvect;
+		Ttriplet *newvect;
 		int k;
 		int oldsize = size;
 		size++;
 		if (size > capacity)
 		{
-			capacity = capacity + (row*col);
+			capacity = capacity + (row * col);
 			// cout<<"capacity"<<capacity<<endl;
 			newvect = new Ttriplet[capacity];
 
-
-
 			if (newvect == NULL)
 			{
-				mem_limite  l(15);   throw(l);
+				mem_limite l(15);
+				throw(l);
 			}
 
 			for (k = 0; k < oldsize; k++)
@@ -183,12 +164,9 @@ namespace mmgd
 			Data = newvect;
 		}
 
-
 		Data[size - 1].j = newdata.j;
 		Data[size - 1].i = newdata.i;
 		Data[size - 1].s = newdata.s;
-
-
 	}
 	int matrixCOO::find(int i, int j)
 	{
@@ -204,56 +182,47 @@ namespace mmgd
 			if (Data[imid].i < i)
 				// change min index to search upper subarray
 				imin = imid + 1;
+			else if (Data[imid].i > i)
+				// change max index to search lower subarray
+				imax = imid - 1;
 			else
-				if (Data[imid].i > i)
-					// change max index to search lower subarray
+			// we have to look for column
+			{
+				if (Data[imid].j < j)
+					// change min index to search upper subarray
+					imin = imid + 1;
+				else if (Data[imid].j > j)
 					imax = imid - 1;
 				else
-					// we have to look for column
+				// we have found
 				{
-					if (Data[imid].j < j)
-						// change min index to search upper subarray
-						imin = imid + 1;
-					else
-						if (Data[imid].j > j)
-							imax = imid - 1;
-						else
-							// we have found
-						{
-							return imid;
-						}
+					return imid;
 				}
+			}
 		}
 		// key not found
 		return -1;
-
 	}
-	matrixCOO& matrixCOO ::  operator =(const matrixCOO& a)
-		// initialise avec un objet smatrixCOO, surdefinition du =
+	matrixCOO &matrixCOO::operator=(const matrixCOO &a)
+	// initialise avec un objet smatrixCOO, surdefinition du =
 	{
 
-		if (&a == this) return *this;// si a est = de la matrice courante
+		if (&a == this)
+			return *this; // si a est = de la matrice courante
 
-
-		affecte((matrixCOO&)a);
+		affecte((matrixCOO &)a);
 		return *this;
 	}
-	matrixCOO& matrixCOO ::  operator =(smatrix& a)
-		// initialise avec une matrice de serie, la matrice destination sera détruite si elle existait déja
+	matrixCOO &matrixCOO::operator=(smatrix &a)
+	// initialise avec une matrice de serie, la matrice destination sera détruite si elle existait déja
 	{
 		serie eps;
 		Ttriplet aij;
 		int i, j, k;
 
-
-
-
 		row = a.getrow();
 		col = a.getcol();
 		size = 0;
-
-
-
 
 		for (i = 0; i < a.getrow(); i++)
 		{
@@ -265,36 +234,25 @@ namespace mmgd
 					aij.i = i;
 					aij.j = j;
 					pushback(aij);
-
 				}
 			}
 		}
-
-
-
-
 	}
 
-	matrixCOO& matrixCOO :: operator =(serie& a) //surdefinition du =, permet d'initialiser avec une serie cast serei matrice
+	matrixCOO &matrixCOO::operator=(serie &a) // surdefinition du =, permet d'initialiser avec une serie cast serei matrice
 	{
 	}
 
-	matrixCOO& matrixCOO :: operator =(poly& p1)	  // initialise avec un polynome cast polynome->matrice
+	matrixCOO &matrixCOO::operator=(poly &p1) // initialise avec un polynome cast polynome->matrice
 	{
-
-
 	}
 
-
-
-
-	matrixCOO& matrixCOO :: operator =(gd& gd1)	  // initialise avec un monome cast monome->matrice
+	matrixCOO &matrixCOO::operator=(gd &gd1) // initialise avec un monome cast monome->matrice
 	{
-
 	}
 
-	serie & matrixCOO::operator()(int i, int j)
-	{  //serie eps;
+	serie &matrixCOO::operator()(int i, int j)
+	{ // serie eps;
 		int index;
 		if (i >= row || j >= col || i < 0 || j < 0)
 		{
@@ -302,24 +260,20 @@ namespace mmgd
 			throw(number);
 		}
 
-		//Recherche Dichotomique
+		// Recherche Dichotomique
 		index = find(i, j);
 		if (index == -1)
-			// it doesn't exist, we have to inseret a series, but the problem now, we have some epsilon in the matrix
+		// it doesn't exist, we have to inseret a series, but the problem now, we have some epsilon in the matrix
 		{
-			return(eps);
-
-
+			return (eps);
 		}
 
 		return Data[index].s;
 	}
 
-
-	int matrixCOO::operator==(const matrixCOO & M)
+	int matrixCOO::operator==(const matrixCOO &M)
 	{
 		int k;
-
 
 		if (M.col != this->col || M.row != this->row)
 		{
@@ -327,8 +281,8 @@ namespace mmgd
 			throw(number);
 		}
 
-		if (M.size != this->size) return 0;
-
+		if (M.size != this->size)
+			return 0;
 
 		for (k = 0; k != this->size; k++)
 		{
@@ -342,17 +296,14 @@ namespace mmgd
 			{
 				return 0;
 			}
-
 		}
 
 		return 1;
 	}
 
-
-	int matrixCOO::operator!=(const matrixCOO & M)
+	int matrixCOO::operator!=(const matrixCOO &M)
 	{
 		int k;
-
 
 		if (M.col != this->col || M.row != this->row)
 		{
@@ -360,9 +311,8 @@ namespace mmgd
 			throw(number);
 		}
 
-		if (M.size != this->size) return 1;
-
-
+		if (M.size != this->size)
+			return 1;
 
 		for (k = 0; k != this->size; k++)
 		{
@@ -374,25 +324,19 @@ namespace mmgd
 			{
 				return 1;
 			}
-
 		}
 
 		return 0;
 	}
 
-
-
-
-	std::ostream&  operator<<(std::ostream &flot, matrixCOO &a)
-		// surdefinition de <<
-		// affichage
+	std::ostream &operator<<(std::ostream &flot, matrixCOO &a)
+	// surdefinition de <<
+	// affichage
 	{
-		int  k;
-
+		int k;
 
 		for (k = 0; k < a.size; k++)
 		{
-
 
 			flot << "[" << a.Data[k].i << "," << a.Data[k].j << "] = " << a.Data[k].s << "\n";
 		}
@@ -400,25 +344,22 @@ namespace mmgd
 		return flot;
 	}
 
-	std::fstream&  operator<<(std::fstream &flot, matrixCOO &a)
-		// surdefinition de <<
-		// pour fichier texte
+	std::fstream &operator<<(std::fstream &flot, matrixCOO &a)
+	// surdefinition de <<
+	// pour fichier texte
 	{
-		int  k;
-
+		int k;
 
 		for (k = 0; k < a.size; k++)
 		{
-
 
 			flot << "[" << a.Data[k].i << "," << a.Data[k].j << "] = " << a.Data[k].s << "\n";
 		}
 
 		return flot;
-
 	}
 
-	matrixCOO oplus(matrixCOO& a, matrixCOO& b)
+	matrixCOO oplus(matrixCOO &a, matrixCOO &b)
 	{
 		int i, j, index;
 		Ttriplet temp;
@@ -432,10 +373,6 @@ namespace mmgd
 		if ((a.col == b.col) && (a.row == b.row))
 		{
 
-
-
-
-
 			while ((i != a.size) && (j != b.size))
 			{
 				index = a.comp(a.geti(i), a.getj(i), b.geti(j), b.getj(j));
@@ -448,10 +385,8 @@ namespace mmgd
 
 					result.pushback(temp);
 
-
 					i++;
 					j++;
-
 				}
 				else
 				{
@@ -463,8 +398,6 @@ namespace mmgd
 						result.pushback(temp);
 
 						i++;
-
-
 					}
 					else
 					{
@@ -477,7 +410,6 @@ namespace mmgd
 						j++;
 					}
 				}
-
 			}
 			while (i != a.size) // il ne reste plus que des A
 			{
@@ -497,19 +429,18 @@ namespace mmgd
 				result.pushback(temp);
 
 				j++;
-
 			}
 
 			return (result);
-
 		}
 		else
 		{
-			mem_limite  l(27);   throw(l);
+			mem_limite l(27);
+			throw(l);
 		}
 	}
 
-	matrixCOO inf(matrixCOO& a, matrixCOO& b)
+	matrixCOO inf(matrixCOO &a, matrixCOO &b)
 	{
 		int i = 0, j = 0, index = 0;
 		Ttriplet temp;
@@ -533,39 +464,31 @@ namespace mmgd
 
 					i++;
 					j++;
-
 				}
 				else
 				{
 					if (index == -1)
 					{
 
-
 						i++;
-
-
 					}
 					else
 					{
 
-
-
 						j++;
 					}
 				}
-
 			}
 
-
 			return (result);
-
 		}
 		else
 		{
-			mem_limite  l(27);   throw(l);
+			mem_limite l(27);
+			throw(l);
 		}
 	}
-	void transpose(matrixCOO& a, matrixCOO& b)
+	void transpose(matrixCOO &a, matrixCOO &b)
 	{
 		int n = 0, i = 0, j = 0, currentb = 0;
 		n = a.getsize();
@@ -591,7 +514,6 @@ namespace mmgd
 						{
 
 							b.pushback(temp);
-
 						}
 						currentb++;
 					}
@@ -600,12 +522,13 @@ namespace mmgd
 		}
 	}
 
-	void fast_transpose(matrixCOO & a, matrixCOO& b)
+	void fast_transpose(matrixCOO &a, matrixCOO &b)
 	{
 
 		int row_terms[MAX_COL], starting_pos[MAX_COL];
 		int i = 0, j = 0, num_cols = a.col, num_terms = a.size;
-		b.row = num_cols; b.col = a.row;
+		b.row = num_cols;
+		b.col = a.row;
 		b.size = num_terms;
 		if (num_terms > 0)
 		{
@@ -627,12 +550,11 @@ namespace mmgd
 			for (i = 0; i < num_terms; i++)
 			{
 				j = starting_pos[a.Data[i].j]++;
-				b.Data[j].i = a.Data[i].j; b.Data[j].j = a.Data[i].i;
+				b.Data[j].i = a.Data[i].j;
+				b.Data[j].j = a.Data[i].i;
 				b.Data[j].s = a.Data[i].s;
 			}
-
 		}
-
 	}
 	/*
 	matrixCOO  transpose(matrixCOO& a)
@@ -1096,5 +1018,4 @@ namespace mmgd
 	}
 	*/
 
-
-}//fin namespace
+} // fin namespace

@@ -41,62 +41,60 @@ using namespace mmgd;
 
 int main(void)
 {
-try{
- smatrix a(7,7);
- smatrix as(7,7), b(7,1), c(1,7), asb(7,1), h(1,1), cas(1,7);
+  try
+  {
+    smatrix a(7, 7);
+    smatrix as(7, 7), b(7, 1), c(1, 7), asb(7, 1), h(1, 1), cas(1, 7);
 
-  a(1,0) = gd(0,2);
-  a(1,2) = gd(1,1);
-  a(2,1) = gd(0,3);
-  a(3,0) = gd(0,2);
-  a(3,4) = gd(2,1);
-  a(4,3) = gd(0,1);
-  a(5,2) = gd(0,1);
-  a(5,6) = gd(1,2);
-  a(6,2) =e;
-  a(6,4) = gd(1,1);
-  a(6,5) = gd(1,8);
+    a(1, 0) = gd(0, 2);
+    a(1, 2) = gd(1, 1);
+    a(2, 1) = gd(0, 3);
+    a(3, 0) = gd(0, 2);
+    a(3, 4) = gd(2, 1);
+    a(4, 3) = gd(0, 1);
+    a(5, 2) = gd(0, 1);
+    a(5, 6) = gd(1, 2);
+    a(6, 2) = e;
+    a(6, 4) = gd(1, 1);
+    a(6, 5) = gd(1, 8);
 
-  b(0,0) = e;
-  c(0,6) = e;
+    b(0, 0) = e;
+    c(0, 6) = e;
 
+    as = star(a);
+    asb = otimes(as, b);
+    h = otimes(c, asb);
+    cas = otimes(c, as);
 
-  as = star(a);
-  asb = otimes(as,b);
-  h = otimes(c,asb);
-  cas = otimes(c,as);
+    cout << "Initial state-matrix: A" << a << endl;
 
+    cout << "Initial transfer function matrix: H" << h << endl;
 
-cout<<"Initial state-matrix: A"<<a<<endl;
+    smatrix aM(7, 7), aopt(7, 7), aopts(7, 7), caopts(1, 7), hopt(1, 1);
 
-cout<<"Initial transfer function matrix: H"<<h<<endl;
+    aM = lfrac(cas, cas);
+    aopt = prga(a, aM);
+    aopts = star(aopt);
+    caopts = otimes(c, aopts);
+    hopt = otimes(caopts, b);
 
- smatrix aM(7,7), aopt(7,7), aopts(7,7), caopts(1,7), hopt(1,1);
+    cout << "Modified state-matrix: Aopts" << aopts << endl;
+    cout << "CAS\\CAS " << aM << endl;
 
- aM = lfrac(cas,cas);
- aopt = prga(a,aM);
- aopts = star(aopt);
- caopts = otimes (c,aopts);
- hopt = otimes(caopts,b);
+    cout << "Modified transfer function matrix: Hopt = CAopt*B" << hopt << endl;
+  }
+  catch (mem_limite l)
+  {
+    cout << "Exception : too many coefficent in polynom " << l.memoire << endl;
+    return (1);
+  }
 
- cout<<"Modified state-matrix: Aopts"<<aopts<<endl;
- cout<<"CAS\\CAS "<<aM<<endl;
-
- cout<<"Modified transfer function matrix: Hopt = CAopt*B"<<hopt<<endl;
-
- }
-  catch(mem_limite l)
- {
-	 cout<<"Exception : too many coefficent in polynom "<<l.memoire<<endl;
-	 return(1);
- }
-
- catch(taille_incorrecte obj)
- { // 0 : r non causal
-   // 1 : tentative d'accès à un element d'une matrice avec un indice incorrect
-   // 2 : matrice de taille incompatible pour oplus, inf, otimes, rfrac, lfrac
-   // 3 : etoile de matrice carré uniquement
-	 cout<<"Exception  "<<obj.erreur<<endl;
-	 return(1);
- }
+  catch (taille_incorrecte obj)
+  { // 0 : r non causal
+    // 1 : tentative d'accès à un element d'une matrice avec un indice incorrect
+    // 2 : matrice de taille incompatible pour oplus, inf, otimes, rfrac, lfrac
+    // 3 : etoile de matrice carré uniquement
+    cout << "Exception  " << obj.erreur << endl;
+    return (1);
+  }
 }

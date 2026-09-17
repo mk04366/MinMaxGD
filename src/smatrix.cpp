@@ -23,10 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mmgd
 {
-	void smatrix::affecte(const serie ** tab, int ligne, int colonne)
+	void smatrix::affecte(const serie **tab, int ligne, int colonne)
 	{
 		int i, j, n;
-
 
 		if (row > 0 && col > 0)
 		{
@@ -38,30 +37,37 @@ namespace mmgd
 			col = 0;
 		}
 
-
 		row = ligne;
 		col = colonne;
 
 		if (row > 0 && col > 0)
 		{
-			data = new serie*[row];
-			if (data == NULL) { mem_limite  l(15);   throw(l); }
+			data = new serie *[row];
+			if (data == NULL)
+			{
+				mem_limite l(15);
+				throw(l);
+			}
 			for (i = 0; i < row; i++)
 			{
 				data[i] = new serie[col];
-				if (data[i] == NULL) { mem_limite  l(16);   throw(l); }
+				if (data[i] == NULL)
+				{
+					mem_limite l(16);
+					throw(l);
+				}
 
-				for (j = 0; j < col; j++)	  data[i][j] = tab[i][j];
-
+				for (j = 0; j < col; j++)
+					data[i][j] = tab[i][j];
 			}
 		}
-		else {
+		else
+		{
 			data = NULL;
 			row = 0;
 			col = 0;
 		}
 	}
-
 
 	// constructeur par defaut de la classe smatrix (matrice 1x1 contenant
 	// epsilon)
@@ -76,72 +82,84 @@ namespace mmgd
 
 		row = 1;
 		col = 1;
-		data = new serie*[row];
-		if (data == NULL) { mem_limite  l(17);   throw(l); }
+		data = new serie *[row];
+		if (data == NULL)
+		{
+			mem_limite l(17);
+			throw(l);
+		}
 		data[0] = new serie[col];
-		if (data[0] == NULL) { mem_limite  l(18);   throw(l); }
+		if (data[0] == NULL)
+		{
+			mem_limite l(18);
+			throw(l);
+		}
 		data[0][0].init(epsilon, epsilon, r);
-
 	}
-
-
 
 	smatrix::smatrix(int i, int j) // constructeur initialisant
 	{
 		int n;
-		if (i > 0 && j > 0) {
-			row = i; col = j;
-			data = new serie*[row];
-			if (data == NULL) { mem_limite  l(19);   throw(l); }
+		if (i > 0 && j > 0)
+		{
+			row = i;
+			col = j;
+			data = new serie *[row];
+			if (data == NULL)
+			{
+				mem_limite l(19);
+				throw(l);
+			}
 			for (n = 0; n < row; n++)
 			{
 				data[n] = new serie[col];
-				if (data[n] == NULL) { mem_limite  l(20);   throw(l); }
+				if (data[n] == NULL)
+				{
+					mem_limite l(20);
+					throw(l);
+				}
 			}
-
 		}
-		else {
+		else
+		{
 			data = NULL;
 			row = 0;
 			col = 0;
 		}
 	}
 
-	smatrix::smatrix(const smatrix & a)	// constructeur initialisation par une autre matrice
+	smatrix::smatrix(const smatrix &a) // constructeur initialisation par une autre matrice
 	{
 		row = 0;
 		col = 0;
-		affecte((const serie**)a.data, a.row, a.col);
-
+		affecte((const serie **)a.data, a.row, a.col);
 	}
 
-	smatrix::smatrix(const serie & a)	// constructeur initialisation par une serie
+	smatrix::smatrix(const serie &a) // constructeur initialisation par une serie
 	{
-		const serie * b = &a;
-		affecte((const serie**)&b, 1, 1);
-
+		const serie *b = &a;
+		affecte((const serie **)&b, 1, 1);
 	}
 
-	smatrix::smatrix(poly & a)	// constructeur initialisation par un polyn�e
-	{
-		serie temp;
-		serie * adtemp;
-		temp = a;
-		adtemp = &temp;
-		affecte((const serie**)&adtemp, 1, 1);
-
-	}
-
-	smatrix::smatrix(gd & a)	// constructeur initialisation par un monome
+	smatrix::smatrix(poly &a) // constructeur initialisation par un polyn�e
 	{
 		serie temp;
 		serie *adtemp;
 		temp = a;
 		adtemp = &temp;
-		affecte((const serie**)&adtemp, 1, 1);
+		affecte((const serie **)&adtemp, 1, 1);
 	}
 
-	smatrix :: ~smatrix()	// destructeur
+	smatrix::smatrix(gd &a) // constructeur initialisation par un monome
+	{
+		serie temp;
+		serie *adtemp;
+		temp = a;
+		adtemp = &temp;
+		affecte((const serie **)&adtemp, 1, 1);
+	}
+
+	smatrix::~smatrix() // destructeur
 	{
 		int n;
 		if (row > 0 && col > 0)
@@ -155,48 +173,44 @@ namespace mmgd
 		col = 0;
 	}
 
-
-
-	smatrix& smatrix ::  operator =(const smatrix& a)
-		// initialise avec un objet smatrix, surdefinition du =
+	smatrix &smatrix::operator=(const smatrix &a)
+	// initialise avec un objet smatrix, surdefinition du =
 	{
-		if (&a == this) return *this;// si a est = de la matrice courante
+		if (&a == this)
+			return *this; // si a est = de la matrice courante
 
-		affecte((const serie**)a.data, a.row, a.col);
+		affecte((const serie **)a.data, a.row, a.col);
 		return *this;
 	}
 
-
-	smatrix& smatrix :: operator =(serie& a) //surdefinition du =, permet d'initialiser avec une serie cast serei matrice
+	smatrix &smatrix::operator=(serie &a) // surdefinition du =, permet d'initialiser avec une serie cast serei matrice
 	{
-		serie  * b = &a;
-		affecte((const serie**)&b, 1, 1);
+		serie *b = &a;
+		affecte((const serie **)&b, 1, 1);
 		return *this;
 	}
 
-	smatrix& smatrix :: operator =(poly& p1)	  // initialise avec un polynome cast polynome->matrice
+	smatrix &smatrix::operator=(poly &p1) // initialise avec un polynome cast polynome->matrice
 	{
 		serie temp;
-		serie * adtemp;
+		serie *adtemp;
 		temp = p1;
 		adtemp = &temp;
-		affecte((const serie**)&adtemp, 1, 1);
+		affecte((const serie **)&adtemp, 1, 1);
 		return *this;
-
 	}
 
-	smatrix& smatrix :: operator =(gd& gd1)	  // initialise avec un monome cast monome->matrice
+	smatrix &smatrix::operator=(gd &gd1) // initialise avec un monome cast monome->matrice
 	{
 		serie temp;
-		serie * adtemp;
+		serie *adtemp;
 		temp = gd1;
 		adtemp = &temp;
-		affecte((const serie**)&adtemp, 1, 1);
+		affecte((const serie **)&adtemp, 1, 1);
 		return *this;
 	}
 
-
-	int smatrix::operator==(const smatrix & M)
+	int smatrix::operator==(const smatrix &M)
 	{
 		int i, j;
 
@@ -208,11 +222,9 @@ namespace mmgd
 		return 1;
 	}
 
-
-
-	std::ostream&  operator<<(std::ostream &flot, smatrix &a)
-		// surdefinition de <<
-		// affichage
+	std::ostream &operator<<(std::ostream &flot, smatrix &a)
+	// surdefinition de <<
+	// affichage
 	{
 		int i, j;
 		for (i = 0; i < a.row; i++)
@@ -225,10 +237,9 @@ namespace mmgd
 		return flot;
 	}
 
-
-	std::fstream&  operator<<(std::fstream &flot, smatrix &a)
-		// surdefinition de <<
-		// pour fichier texte
+	std::fstream &operator<<(std::fstream &flot, smatrix &a)
+	// surdefinition de <<
+	// pour fichier texte
 	{
 		int i, j;
 		for (i = 0; i < a.row; i++)
@@ -246,7 +257,7 @@ namespace mmgd
 		return flot;
 	}
 
-	smatrix oplus(smatrix& a, smatrix& b)
+	smatrix oplus(smatrix &a, smatrix &b)
 	{
 		int i, j;
 		smatrix result(a.row, b.col);
@@ -258,10 +269,10 @@ namespace mmgd
 				result.data[i][j] = oplus(a.data[i][j], b.data[i][j]);
 			}
 		}
-		return(result);
+		return (result);
 	}
 
-	smatrix inf(smatrix& a, smatrix& b)
+	smatrix inf(smatrix &a, smatrix &b)
 	{
 		int i, j;
 		smatrix result(a.row, b.col);
@@ -273,11 +284,10 @@ namespace mmgd
 				result.data[i][j] = inf(a.data[i][j], b.data[i][j]);
 			}
 		}
-		return(result);
+		return (result);
 	}
 
-
-	smatrix otimes(smatrix& a, smatrix& b)
+	smatrix otimes(smatrix &a, smatrix &b)
 	{
 		int i, j, k;
 		serie temp;
@@ -293,12 +303,10 @@ namespace mmgd
 					result.data[i][j] = oplus(result.data[i][j], temp = otimes(a.data[i][k], b.data[k][j]));
 			}
 		}
-		return(result);
+		return (result);
 	}
 
-
-
-	smatrix odot(smatrix& a, smatrix& b)
+	smatrix odot(smatrix &a, smatrix &b)
 	{
 		int i, j, k;
 		serie temp;
@@ -314,17 +322,12 @@ namespace mmgd
 
 				for (k = 0; k < a.col; k++)
 					result(i, j) = inf(result(i, j), temp = odot(a(i, k), b(k, j)));
-
-
 			}
 		}
-		return(result);
+		return (result);
 	}
 
-
-
-
-	smatrix lfrac(smatrix& a, smatrix& b) //residuation a gauche de 2 matrices de series p�iodiques b\a
+	smatrix lfrac(smatrix &a, smatrix &b) // residuation a gauche de 2 matrices de series p�iodiques b\a
 	{
 		int i, j, k;
 		smatrix result(b.col, a.col);
@@ -343,10 +346,10 @@ namespace mmgd
 			}
 		}
 
-		return(result);
+		return (result);
 	}
 
-	smatrix rfrac(smatrix& a, smatrix& b) //residuation a droite de 2 matrices de series p�iodiques a/b
+	smatrix rfrac(smatrix &a, smatrix &b) // residuation a droite de 2 matrices de series p�iodiques a/b
 	{
 		int i, j, k;
 		serie temporaire;
@@ -365,11 +368,10 @@ namespace mmgd
 			}
 		}
 
-		return(result);
+		return (result);
 	}
 
-
-	smatrix Duallfrac(smatrix& a, smatrix& b) //residuation a gauche de 2 matrices de series p�iodiques b\a
+	smatrix Duallfrac(smatrix &a, smatrix &b) // residuation a gauche de 2 matrices de series p�iodiques b\a
 	{
 		int i, j, k;
 		smatrix result(b.col, a.col);
@@ -391,7 +393,7 @@ namespace mmgd
 			}
 		}
 
-		return(result);
+		return (result);
 	}
 	smatrix transpose(smatrix &P)
 	{
@@ -413,18 +415,27 @@ namespace mmgd
 		double p;
 		int g;
 		int index;
-	}TpenteIndex;
+	} TpenteIndex;
 	/// this function define the criterion to sort the row, the smallest slope before, if two slpoes equal the one with
 	/// the smallest gamma exponent
-	int comppente(const void* pt1, const void*pt2)
+	int comppente(const void *pt1, const void *pt2)
 	{
-		TpenteIndex* p1 = (TpenteIndex*)pt1;
-		TpenteIndex*p2 = (TpenteIndex*)pt2;
-		if (p1->p < p2->p) { return -1; }
-		if (p1->p > p2->p) { return 1; }
-		if (p1->p == p2->p) {
-			if (p1->g < p2->g) return 1;
-			if (p1->g > p2->g) return -1;
+		TpenteIndex *p1 = (TpenteIndex *)pt1;
+		TpenteIndex *p2 = (TpenteIndex *)pt2;
+		if (p1->p < p2->p)
+		{
+			return -1;
+		}
+		if (p1->p > p2->p)
+		{
+			return 1;
+		}
+		if (p1->p == p2->p)
+		{
+			if (p1->g < p2->g)
+				return 1;
+			if (p1->g > p2->g)
+				return -1;
 
 			else
 
@@ -436,7 +447,7 @@ namespace mmgd
 	smatrix permutation(smatrix &a)
 	{
 		gd *temp;
-		int * perm;
+		int *perm;
 		int i, j;
 		double pentetemp;
 		double pentek;
@@ -447,7 +458,6 @@ namespace mmgd
 		temp = (new gd[a.row]);
 		perm = (new int[a.row]);
 		pente = (new TpenteIndex[a.row]);
-
 
 		for (i = 0; i < a.row; i++)
 		{
@@ -472,12 +482,10 @@ namespace mmgd
 				{
 					pentetemp = (double)a(i, i).getq().getpol(j).getg() / a(i, i).getq().getpol(j).getd();
 
-
 					if (pente[i].p > pentetemp)
 					{
 						pente[i].p = pentetemp;
 						pente[i].g = a(i, i).getp().getpol(j).getg();
-
 					}
 				}
 			}
@@ -489,7 +497,6 @@ namespace mmgd
 				{
 					pente[i].p = pentetemp;
 					pente[i].g = a(i, i).getr().getg();
-
 				}
 			}
 
@@ -504,10 +511,10 @@ namespace mmgd
 
 		qsort(pente, a.row, sizeof(TpenteIndex), comppente);
 		// cout<<"a.row"<<a.row<<endl;
-	   /*   for(i=0;i<a.row;i++)
-		 {cout<<"pente "<<i<<" = "<<pente[i].p<<" index i "<<pente[i].index<<endl;
-		  cout<<"a("<<i<<","<<i<<"="<<a(i,i)<<endl;
-		 }*/
+		/*   for(i=0;i<a.row;i++)
+		  {cout<<"pente "<<i<<" = "<<pente[i].p<<" index i "<<pente[i].index<<endl;
+		   cout<<"a("<<i<<","<<i<<"="<<a(i,i)<<endl;
+		  }*/
 		smatrix Pt(a.row, a.row);
 		for (i = 0; i < a.row; i++)
 		{
@@ -515,8 +522,8 @@ namespace mmgd
 			P(i, pente[i].index).init(epsilon, e, e);
 			Pt(pente[i].index, i).init(epsilon, e, e);
 		}
-		//cout<<"P"<<P<<endl;
-		//cout<<"a"<<a<<endl;
+		// cout<<"P"<<P<<endl;
+		// cout<<"a"<<a<<endl;
 		smatrix atemp;
 		atemp = otimes(P, a);
 		// cout<<"temp"<<atemp<<endl;
@@ -528,7 +535,6 @@ namespace mmgd
 		a = atemp;
 		return P;
 	}
-
 
 	smatrix star(smatrix ak_1)
 	{
@@ -544,10 +550,9 @@ namespace mmgd
 
 			akkstar = star(ak_1(k, k));
 
-			//system("cls");
-			//score=0;
-			//cout<<k<<"\n";
-
+			// system("cls");
+			// score=0;
+			// cout<<k<<"\n";
 
 			for (i = 0; i < a.row; i++)
 			{
@@ -561,40 +566,39 @@ namespace mmgd
 					akktemp = otimes(ak_1(i, k), akktemp);
 
 					a.data[i][j] = oplus(ak_1(i, j), akktemp);
-					//score=score+a.data[i][j].getp().getn()+a.data[i][j].getq().getn();
-				 //  cout<<" "<<a.data[i][j].getp().getn()+a.data[i][j].getq().getn()<<" ";
-				//  cout<<"k"<<k<<"i"<<i<<"j"<<j<<"akij"<< a.data[i][j]<<endl;
+					// score=score+a.data[i][j].getp().getn()+a.data[i][j].getq().getn();
+					//  cout<<" "<<a.data[i][j].getp().getn()+a.data[i][j].getq().getn()<<" ";
+					//  cout<<"k"<<k<<"i"<<i<<"j"<<j<<"akij"<< a.data[i][j]<<endl;
 				}
 			}
 
 			ak_1 = a;
 			// cout<<"\n";
-	   //if(score>scoremax) scoremax=score;
+			// if(score>scoremax) scoremax=score;
 
-	  // cout<<" k "<<k<<" a"<<k<<"="<<ak_1<<endl;
+			// cout<<" k "<<k<<" a"<<k<<"="<<ak_1<<endl;
 		}
 
 		for (k = 0; k < a.row; k++)
 		{
 			a.data[k][k] = oplus(e, a(k, k));
-
 		}
 		//	cout<<"scoremax"<<scoremax<<endl;
-			//system("pause");
-		return(a);
+		// system("pause");
+		return (a);
 	}
 
-
-	smatrix prcaus(smatrix & s)
+	smatrix prcaus(smatrix &s)
 	{
 		smatrix local(s.row, s.col);
 
 		int i, j;
 
-		for (i = 0; i < s.row; i++) for (j = 0; j < s.col; j++) local(i, j) = prcaus(s(i, j));
+		for (i = 0; i < s.row; i++)
+			for (j = 0; j < s.col; j++)
+				local(i, j) = prcaus(s(i, j));
 
 		return local;
 	}
 
-} //fin namespace mmgd
-
+} // fin namespace mmgd

@@ -36,17 +36,15 @@ namespace mmgd
 			if (this->Data != NULL)
 			{
 				delete[] Data;
-
 			}
 
 			Data = new Ttriplet[capacity];
 		}
 		if (this->Data == NULL)
 		{
-			mem_limite  l(15);   throw(l);
+			mem_limite l(15);
+			throw(l);
 		}
-
-
 
 		for (i = 0; i < size; i++)
 		{
@@ -54,9 +52,7 @@ namespace mmgd
 			this->Data[i].j = list.Data[i].j;
 			this->Data[i].s = list.Data[i].s;
 		}
-
 	}
-
 
 	// constructeur par defaut de la classe smatrix (matrice 1x1 contenant
 	// epsilon)
@@ -67,10 +63,7 @@ namespace mmgd
 		this->size = 0;
 		this->capacity = 0;
 		this->Data = NULL;
-
 	}
-
-
 
 	matrixCOO::matrixCOO(int i, int j) // constructeur initialisant
 	{
@@ -86,15 +79,12 @@ namespace mmgd
 		this->Data = NULL;
 	}
 
-
-	matrixCOO::matrixCOO(const matrixCOO & a)	// constructeur initialisation par une autre matrice
+	matrixCOO::matrixCOO(const matrixCOO &a) // constructeur initialisation par une autre matrice
 	{
 		affecte((matrixCOO &)a);
 	}
 
-
-
-	matrixCOO::matrixCOO(const serie & a)	// constructeur initialisation par une serie
+	matrixCOO::matrixCOO(const serie &a) // constructeur initialisation par une serie
 	{
 		this->row = 1;
 		this->col = 1;
@@ -107,7 +97,7 @@ namespace mmgd
 		this->pushback(TripletSerie);
 	}
 
-	matrixCOO::matrixCOO(poly & a)	// constructeur initialisation par un polyn�e
+	matrixCOO::matrixCOO(poly &a) // constructeur initialisation par un polyn�e
 	{
 		this->row = 1;
 		this->col = 1;
@@ -118,10 +108,9 @@ namespace mmgd
 		TripletPoly.j = 1;
 		TripletPoly.s = a;
 		this->pushback(TripletPoly);
-
 	}
 
-	matrixCOO::matrixCOO(gd & a)	// constructeur initialisation par un monome
+	matrixCOO::matrixCOO(gd &a) // constructeur initialisation par un monome
 	{
 		this->row = 1;
 		this->col = 1;
@@ -132,10 +121,9 @@ namespace mmgd
 		TripletGd.j = 1;
 		TripletGd.s = a;
 		this->pushback(TripletGd);
-
 	}
 
-	matrixCOO :: ~matrixCOO()	// destructeur
+	matrixCOO::~matrixCOO() // destructeur
 	{
 		delete[] Data;
 		row = 0;
@@ -160,21 +148,25 @@ namespace mmgd
 	int matrixCOO::comp(int ai, int aj, int bi, int bj)
 	{
 
-		if (ai > bi) return 1;
+		if (ai > bi)
+			return 1;
 		else
 		{
-			if (ai < bi) return -1;
+			if (ai < bi)
+				return -1;
 			else
 			{
-				if (aj > bj) return 1;
+				if (aj > bj)
+					return 1;
 				else
 				{
-					if (aj < bj) return -1;
-					else return 0;
+					if (aj < bj)
+						return -1;
+					else
+						return 0;
 				}
 			}
 		}
-
 	}
 	/*
 	void matrixCOO :: pushback(Ttriplet & newdata)
@@ -198,39 +190,38 @@ namespace mmgd
 		  Data[size-1].j=newdata.j;
 		  Data[size-1].i=newdata.i;
 		  Data[size-1].s=newdata.s;
-	   */   /* push_back */
+	   */
+	/* push_back */
 
-	void matrixCOO::pushback(Ttriplet & newdata)
+	void matrixCOO::pushback(Ttriplet &newdata)
 	{
-		Ttriplet * newvect;
+		Ttriplet *newvect;
 		int oldsize = this->size;
 		int k = 1;
 		this->size++;
 		if (size > capacity)
 		{
-			this->capacity = this->capacity + (row*col);
+			this->capacity = this->capacity + (row * col);
 			std::cout << "capacity" << capacity << std::endl;
 			newvect = new Ttriplet[capacity];
 
 			if (newvect == NULL)
 			{
-				mem_limite  l(15);   throw(l);
+				mem_limite l(15);
+				throw(l);
 			}
 
 			for (k = 0; k <= oldsize; k++)
 			{
 				// newvect[k].i;
-				 //this->geti(k);
-				 //newvect[k].j=this->getj(k);
+				// this->geti(k);
+				// newvect[k].j=this->getj(k);
 				//  newvect[k].s=this->Data[k].s;
 				// newvect[k]=Data[k];
-
 			}
 			delete[] Data;
 			Data = newvect;
-
 		}
-
 
 		this->Data[size - 1].j = newdata.j;
 		this->Data[size - 1].i = newdata.i;
@@ -242,7 +233,6 @@ namespace mmgd
 		 std::cout<<this->Data[size].j<<std::endl;
 		 std::cout<<this->Data[size].s<<std::endl;*/
 	}
-
 
 	int matrixCOO::find(int i, int j)
 	{
@@ -258,42 +248,39 @@ namespace mmgd
 			if (Data[imid].i < i)
 				// change min index to search upper subarray
 				imin = imid + 1;
+			else if (Data[imid].i > i)
+				// change max index to search lower subarray
+				imax = imid - 1;
 			else
-				if (Data[imid].i > i)
-					// change max index to search lower subarray
+			// we have to look for column
+			{
+				if (Data[imid].j < j)
+					// change min index to search upper subarray
+					imin = imid + 1;
+				else if (Data[imid].j > j)
 					imax = imid - 1;
 				else
-					// we have to look for column
+				// we have found
 				{
-					if (Data[imid].j < j)
-						// change min index to search upper subarray
-						imin = imid + 1;
-					else
-						if (Data[imid].j > j)
-							imax = imid - 1;
-						else
-							// we have found
-						{
-							return imid;
-						}
+					return imid;
 				}
+			}
 		}
 		// key not found
 		return -1;
-
 	}
-	matrixCOO& matrixCOO ::  operator =(const matrixCOO& a)
-		// initialise avec un objet smatrixCOO, surdefinition du =
+	matrixCOO &matrixCOO::operator=(const matrixCOO &a)
+	// initialise avec un objet smatrixCOO, surdefinition du =
 	{
 
-		if (&a == this) return *this;// si a est = de la matrice courante
+		if (&a == this)
+			return *this; // si a est = de la matrice courante
 
-
-		affecte((matrixCOO&)a);
+		affecte((matrixCOO &)a);
 		return *this;
 	}
-	matrixCOO& matrixCOO ::  operator =(smatrix& a)
-		// initialise avec une matrice de serie, la matrice destination sera détruite si elle existait déja
+	matrixCOO &matrixCOO::operator=(smatrix &a)
+	// initialise avec une matrice de serie, la matrice destination sera détruite si elle existait déja
 	{
 		serie eps;
 		Ttriplet aij;
@@ -320,16 +307,13 @@ namespace mmgd
 					this->pushback(aij);
 
 					//  std::cout<<*this<<std::endl;
-
 				}
 			}
 		}
 		// size=;
-
-
 	}
 
-	matrixCOO& matrixCOO :: operator =(serie& a) //surdefinition du =, permet d'initialiser avec une serie cast serei matrice
+	matrixCOO &matrixCOO::operator=(serie &a) // surdefinition du =, permet d'initialiser avec une serie cast serei matrice
 	{
 		Ttriplet aij;
 		this->row = 1;
@@ -341,7 +325,7 @@ namespace mmgd
 		this->pushback(aij);
 	}
 
-	matrixCOO& matrixCOO :: operator =(poly& p1)	  // initialise avec un polynome cast polynome->matrice
+	matrixCOO &matrixCOO::operator=(poly &p1) // initialise avec un polynome cast polynome->matrice
 	{
 		Ttriplet aij;
 		this->row = 1;
@@ -353,10 +337,7 @@ namespace mmgd
 		this->pushback(aij);
 	}
 
-
-
-
-	matrixCOO& matrixCOO :: operator =(gd& gd1)	  // initialise avec un monome cast monome->matrice
+	matrixCOO &matrixCOO::operator=(gd &gd1) // initialise avec un monome cast monome->matrice
 	{
 		Ttriplet aij;
 		this->row = 1;
@@ -366,10 +347,9 @@ namespace mmgd
 		aij.j = 1;
 		aij.s = gd1;
 		this->pushback(aij);
-
 	}
 
-	serie & matrixCOO::operator()(int i, int j)
+	serie &matrixCOO::operator()(int i, int j)
 	{
 		serie eps;
 		int index;
@@ -378,21 +358,23 @@ namespace mmgd
 			taille_incorrecte number(1);
 			throw(number);
 		}
-		else {
+		else
+		{
 
-			//Recherche Dichotomique
+			// Recherche Dichotomique
 			index = find(i, j);
 
 			// it doesn't exist, we have to inseret a series, but the problem now, we have some epsilon in the matrix
-			if (index == -1) {
-				return(eps);
-			}/// modification
+			if (index == -1)
+			{
+				return (eps);
+			} /// modification
 
 			return Data[index].s;
 		}
 	}
 
-	int matrixCOO::operator==(const matrixCOO & M)
+	int matrixCOO::operator==(const matrixCOO &M)
 	{
 		int k;
 
@@ -410,7 +392,8 @@ namespace mmgd
 
 		for (k = 0; k != this->size; k++)
 		{
-			if (!((this->Data[k].i) == (M.Data[k].i))) {
+			if (!((this->Data[k].i) == (M.Data[k].i)))
+			{
 
 				return 0;
 			}
@@ -425,17 +408,14 @@ namespace mmgd
 			{
 				return 0;
 			}
-
 		}
 
 		return 1;
 	}
 
-
-	int matrixCOO::operator!=(const matrixCOO & M)
+	int matrixCOO::operator!=(const matrixCOO &M)
 	{
 		int k = 0;
-
 
 		if (M.col != col || M.row != row)
 		{
@@ -443,9 +423,8 @@ namespace mmgd
 			throw(number);
 		}
 
-		if (M.size != size) return 1;
-
-
+		if (M.size != size)
+			return 1;
 
 		for (k = 0; k != this->size; k++)
 		{
@@ -457,18 +436,14 @@ namespace mmgd
 			{
 				return 1;
 			}
-
 		}
 
 		return 0;
 	}
 
-
-
-
-	std::ostream&  operator<<(std::ostream &flot, matrixCOO &a)
-		// surdefinition de <<
-		// affichage
+	std::ostream &operator<<(std::ostream &flot, matrixCOO &a)
+	// surdefinition de <<
+	// affichage
 	{
 		int k = 0;
 		for (k = 0; k < a.size; k++)
@@ -478,9 +453,9 @@ namespace mmgd
 		return flot;
 	}
 
-	std::fstream&  operator<<(std::fstream &flot, matrixCOO &a)
-		// surdefinition de <<
-		// pour fichier texte
+	std::fstream &operator<<(std::fstream &flot, matrixCOO &a)
+	// surdefinition de <<
+	// pour fichier texte
 	{
 		int k = 0;
 		for (k = 0; k < a.size; k++)
@@ -489,10 +464,9 @@ namespace mmgd
 		}
 
 		return flot;
-
 	}
 
-	matrixCOO oplus(matrixCOO& a, matrixCOO& b)
+	matrixCOO oplus(matrixCOO &a, matrixCOO &b)
 	{
 		int i = 0, j = 0, index = 0;
 		Ttriplet temp;
@@ -525,8 +499,6 @@ namespace mmgd
 						result.pushback(temp);
 
 						i++;
-
-
 					}
 					else
 					{
@@ -539,7 +511,6 @@ namespace mmgd
 						j++;
 					}
 				}
-
 			}
 			while (i != a.size) // il ne reste plus que des A
 			{
@@ -559,20 +530,18 @@ namespace mmgd
 				result.pushback(temp);
 
 				j++;
-
 			}
 
 			return (result);
-
 		}
 		else
 		{
-			mem_limite  l(27);   throw(l);
+			mem_limite l(27);
+			throw(l);
 		}
 	}
 
-
-	matrixCOO inf(matrixCOO& a, matrixCOO& b)
+	matrixCOO inf(matrixCOO &a, matrixCOO &b)
 	{
 		int i = 0, j = 0, index = 0;
 		Ttriplet temp;
@@ -596,7 +565,6 @@ namespace mmgd
 
 					i++;
 					j++;
-
 				}
 				else
 				{
@@ -608,8 +576,6 @@ namespace mmgd
 						result.pushback(temp);
 
 						i++;
-
-
 					}
 					else
 					{
@@ -622,7 +588,6 @@ namespace mmgd
 						j++;
 					}
 				}
-
 			}
 			while (i != a.size) // il ne reste plus que des A
 			{
@@ -645,15 +610,15 @@ namespace mmgd
 			}
 
 			return (result);
-
 		}
 		else
 		{
-			mem_limite  l(27);   throw(l);
+			mem_limite l(27);
+			throw(l);
 		}
 	}
 
-	void transpose(matrixCOO& a, matrixCOO& b)
+	void transpose(matrixCOO &a, matrixCOO &b)
 	{
 		int n = 0, i = 0, j = 0, currentb = 0;
 		n = a.getsize();
@@ -679,7 +644,6 @@ namespace mmgd
 						{
 
 							b.pushback(temp);
-
 						}
 						currentb++;
 					}
@@ -688,12 +652,13 @@ namespace mmgd
 		}
 	}
 
-	void fast_transpose(matrixCOO & a, matrixCOO& b)
+	void fast_transpose(matrixCOO &a, matrixCOO &b)
 	{
 
 		int row_terms[MAX_COL], starting_pos[MAX_COL];
 		int i = 0, j = 0, num_cols = a.col, num_terms = a.size;
-		b.row = num_cols; b.col = a.row;
+		b.row = num_cols;
+		b.col = a.row;
 		b.size = num_terms;
 		if (num_terms > 0)
 		{
@@ -715,12 +680,11 @@ namespace mmgd
 			for (i = 0; i < num_terms; i++)
 			{
 				j = starting_pos[a.Data[i].j]++;
-				b.Data[j].i = a.Data[i].j; b.Data[j].j = a.Data[i].i;
+				b.Data[j].i = a.Data[i].j;
+				b.Data[j].j = a.Data[i].i;
 				b.Data[j].s = a.Data[i].s;
 			}
-
 		}
-
 	}
 
 	int compare_multi(int a, int b)
@@ -737,10 +701,9 @@ namespace mmgd
 		{
 			return 1;
 		}
-
 	}
 
-	matrixCOO otimes(matrixCOO& a, matrixCOO& b)
+	matrixCOO otimes(matrixCOO &a, matrixCOO &b)
 	{
 		matrixCOO d;
 		int i, j, column, totalb = b.size, totald = 0;
@@ -758,7 +721,7 @@ namespace mmgd
 		a.Data[totala + 1].i = rows_a;
 		new_b.Data[totalb + 1].i = cols_b;
 		new_b.Data[totalb + 1].j = 0;
-		for (i = 1; i <= totala; )
+		for (i = 1; i <= totala;)
 		{
 			column = new_b.Data[1].i;
 			for (j = 1; j <= totalb + 1;)
@@ -777,20 +740,24 @@ namespace mmgd
 					i = row_begin;
 					column = new_b.Data[j].i;
 				}
-				else switch (compare_multi(a.Data[i].j, new_b.Data[j].j))
-				{
-				case -1: i++;
-					break;
-				case 0:
-					temp = otimes(a.Data[i++].s, new_b.Data[j++].s);
-					sum = oplus(sum, temp);
-					break;
-				case 1: j++;
-				}
+				else
+					switch (compare_multi(a.Data[i].j, new_b.Data[j].j))
+					{
+					case -1:
+						i++;
+						break;
+					case 0:
+						temp = otimes(a.Data[i++].s, new_b.Data[j++].s);
+						sum = oplus(sum, temp);
+						break;
+					case 1:
+						j++;
+					}
 			}
 			for (; a.Data[i].i == row; i++)
 				;
-			row_begin = i; row = a.Data[i].i;
+			row_begin = i;
+			row = a.Data[i].i;
 		}
 
 		d.row = rows_a;
@@ -798,7 +765,7 @@ namespace mmgd
 		d.size = totald;
 		return d;
 	}
-	void storesum(matrixCOO d, int *totald, int row, int column, serie * sum)
+	void storesum(matrixCOO d, int *totald, int row, int column, serie *sum)
 	{
 		serie seps;
 		seps.init(epsilon, epsilon, e);
@@ -810,7 +777,6 @@ namespace mmgd
 				d.Data[*totald].j = column;
 				d.Data[++*totald].s = *sum;
 				*sum = seps;
-
 			}
 		}
 	}
@@ -1103,4 +1069,4 @@ namespace mmgd
 	}
 	*/
 
-}//fin namespace mmgd
+} // fin namespace mmgd

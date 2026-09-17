@@ -24,13 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _Sci_infty -HUGE_VAL
 
 /*Macro pour convertir HUGE_VAL -> infinity et -HUGE_VAL -> _ininity */
-#define HUGEtoGD(x)  ( ( x == Sci_infty ) ? infinity : ((x == _Sci_infty ) ? _infinity : x) )
+#define HUGEtoGD(x) ((x == Sci_infty) ? infinity : ((x == _Sci_infty) ? _infinity : x))
 /*Macro pour convertir infinity -> HUGE_VAL et _infinity -> -HUGE_VAL */
-#define GDtoHUGE(x)  ( ( x == infinity ) ? Sci_infty : ((x == _infinity) ? _Sci_infty : x)  )
+#define GDtoHUGE(x) ((x == infinity) ? Sci_infty : ((x == _infinity) ? _Sci_infty : x))
 
-#define MAX(a,b)	(( (a)>(b))?(a):(b))
-#define MIN(a,b)	(( (a)<(b))?(a):(b))
-
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 namespace mmgd
 {
@@ -63,14 +62,13 @@ namespace mmgd
 		header_size = (int *)&Sci_serie[3];
 
 		/*data pointe vers les donnes des series */
-		data = (double *)&Sci_serie[3 + (nbl*nbc) * 2];
+		data = (double *)&Sci_serie[3 + (nbl * nbc) * 2];
 
 		pnt_size = 0;
 
 		for (m = 0; m < nbl; m++)
 			for (n = 0; n < nbc; n++)
 			{
-
 
 				size_p = header_size[pnt_size++];
 				size_q = header_size[pnt_size++];
@@ -100,10 +98,9 @@ namespace mmgd
 				A(m, n) = s;
 			}
 
-		//cout << "A=" << A << endl;
+		// cout << "A=" << A << endl;
 
-		return(A);
-
+		return (A);
 	}
 
 	/********************************************************************************************/
@@ -121,7 +118,6 @@ namespace mmgd
 		int size_header;
 		int size_type;
 
-
 		/*maintenant on effectue l'op�ation dans le sens inverse */
 		/*Nouvelle taille de p et de q */
 		/* on recupere le nombre de lignes et de colonnes de la matrice */
@@ -131,14 +127,13 @@ namespace mmgd
 		/* on recupere toutes les tailles des p et q de chacunes des series de la matrice */
 		/* que l'on stocke dans un tableau tab_size */
 
-		tab_size = (int *)malloc(2 * nbc*nbl * sizeof(int));
+		tab_size = (int *)malloc(2 * nbc * nbl * sizeof(int));
 
 		if (tab_size == NULL)
 		{
 			printf("Not enough memory\r\n");
 			exit(1);
 		}
-
 
 		pnt_tab_size = 0;
 
@@ -149,13 +144,12 @@ namespace mmgd
 				tab_size[pnt_tab_size++] = A(m, n).getq().getn();
 			}
 
-
 		size_header = 0;
 		/* on peut maintenant calculer la taille du header  */
-		for (i = 0; i < (2 * nbc*nbl); i++)
+		for (i = 0; i < (2 * nbc * nbl); i++)
 			size_header += tab_size[i];
 
-		size_type = (3 + 2 * nbc*nbl) * sizeof(int) + size_header * 2 * sizeof(double) + (2 * nbc*nbl) * sizeof(double);
+		size_type = (3 + 2 * nbc * nbl) * sizeof(int) + size_header * 2 * sizeof(double) + (2 * nbc * nbl) * sizeof(double);
 
 		/* Vecteur de retour dans Scilab */
 		*Sci_out = (int *)malloc(size_type);
@@ -165,10 +159,10 @@ namespace mmgd
 		(*Sci_out)[2] = nbc; /*Nb de colonnes */
 
 		/* on remplit les tailles des polynomes p et q */
-		for (i = 0; i < (2 * nbc*nbl); i++)
+		for (i = 0; i < (2 * nbc * nbl); i++)
 			(*Sci_out)[3 + i] = tab_size[i];
 
-		data_out = (double *)& ((*Sci_out)[3 + 2 * nbc*nbl]);
+		data_out = (double *)&((*Sci_out)[3 + 2 * nbc * nbl]);
 
 		pnt_tab_size = 0;
 
@@ -178,10 +172,9 @@ namespace mmgd
 				size_p = tab_size[pnt_tab_size++];
 				size_q = tab_size[pnt_tab_size++];
 
-
 				/* D'abord les gammas de p */
 				for (i = 0; i < size_p; i++)
-					data_out[i] = GDtoHUGE((double)A(m, n).getp().getpol(i).getg());   /* Attention l'infini de MinMaxgd est diff�ent de celui de Scilab */
+					data_out[i] = GDtoHUGE((double)A(m, n).getp().getpol(i).getg()); /* Attention l'infini de MinMaxgd est diff�ent de celui de Scilab */
 
 				/* les deltas de p */
 				for (i = 0; i < size_p; i++)
@@ -201,15 +194,13 @@ namespace mmgd
 
 				/* on pointe sur les donn�s suivantes */
 				data_out = (double *)&data_out[2 * size_p + 2 * size_q + 2];
-
 			}
 
 		/* on libere les variables intermediaires */
 		free(tab_size);
 
-		return(size_type);
+		return (size_type);
 	}
-
 
 	/***************************************************************************************/
 	/* Somme de deux matrices dans MinMax[[gamma,delta]]								   */
@@ -233,7 +224,6 @@ namespace mmgd
 			size_out = build_typesci(m, m_out);
 
 			return size_out;
-
 		}
 	}
 
@@ -255,15 +245,14 @@ namespace mmgd
 
 			m = otimes(m1, m2);
 
-			//cout << "m=" << m << endl;
-			//cout << "produit" << endl;
+			// cout << "m=" << m << endl;
+			// cout << "produit" << endl;
 
 			size_out = build_typesci(m, m_out);
 
 			//	cout << "mul()=" << m << endl;
 
 			return size_out;
-
 		}
 	}
 
@@ -291,13 +280,11 @@ namespace mmgd
 
 			// 		cout << "lfrac : m" << m << endl;
 
-
 			size_out = build_typesci(m, m_out);
 
 			// 		cout  << "lfrac : size_out " << size_out << endl;
 
 			return size_out;
-
 		}
 	}
 	/****************************************************************************************/
@@ -321,10 +308,8 @@ namespace mmgd
 			size_out = build_typesci(m, m_out);
 
 			return size_out;
-
 		}
 	}
-
 
 	/***************************************************************************************/
 	/* Residuation �droite de deux matrices dans MinMax[[gamma,delta]]			           */
@@ -347,9 +332,7 @@ namespace mmgd
 			// 		cout << "m1= "  << m1 << endl;
 			// 		cout << "m2= " << m2 << endl;
 
-
 			m = rfrac(m1, m2);
-
 
 			// 		cout << "rfrac : m" << m << endl;
 
@@ -358,7 +341,6 @@ namespace mmgd
 			// 		cout  << "rfrac : size_out " << size_out << endl;
 
 			return size_out;
-
 		}
 	}
 
@@ -381,8 +363,7 @@ namespace mmgd
 			/* Puis on construit le nouveau type Scilab 258 canonique*/
 			size = build_typesci(m, Sci_in);
 
-			return(size);
-
+			return (size);
 		}
 	}
 
@@ -408,7 +389,6 @@ namespace mmgd
 			// 		cout << "stargd()=" << m << endl;
 
 			return size_out;
-
 		}
 	}
 
@@ -440,9 +420,7 @@ namespace mmgd
 			newnbc = MAX(nbc, num_col);
 			newnbl = MAX(nbl, num_ligne);
 
-
 			smatrix mtemp(newnbl, newnbc);
-
 
 			for (i = 0; i < nbl; i++)
 				for (j = 0; j < nbc; j++)
@@ -474,11 +452,8 @@ namespace mmgd
 			smatrix t;
 			serie s;
 
-
-
 			/* Serie */
 			t = build_serie(header);
-
 
 			smatrix mtemp(num_ligne, num_col);
 
@@ -489,7 +464,6 @@ namespace mmgd
 			size_out = build_typesci(mtemp, m_out);
 
 			// 		cout << "ins_mmgd_i" << endl;
-
 
 			return size_out;
 		}
@@ -541,7 +515,7 @@ namespace mmgd
 			m1 = build_serie(s1);
 			m2 = build_serie(s2);
 
-			*m_out = (int *)calloc(m1.getcol()*m1.getrow(), sizeof(int));
+			*m_out = (int *)calloc(m1.getcol() * m1.getrow(), sizeof(int));
 
 			if (m_out == NULL)
 			{
@@ -561,10 +535,9 @@ namespace mmgd
 					ptb++;
 				}
 
-			size_out = (m1.getcol()*m1.getrow()) * sizeof(int);
+			size_out = (m1.getcol() * m1.getrow()) * sizeof(int);
 
 			return size_out;
-
 		}
 	}
 
@@ -587,15 +560,15 @@ namespace mmgd
 			m1 = build_serie(s1);
 			m2 = build_serie(s2);
 
-			//cout << "m1=" << m1 << endl;
-			//cout << "m2=" << m2 << endl;
+			// cout << "m1=" << m1 << endl;
+			// cout << "m2=" << m2 << endl;
 
 			nbl = MAX(m1.getrow(), m2.getrow());
 			nbc = m1.getcol() + m2.getcol();
 
-			//cr�tion d'une nouvelle matrice
+			// cr�tion d'une nouvelle matrice
 			smatrix m(nbl, nbc);
-			//recopie de la matrice 1
+			// recopie de la matrice 1
 			for (i = 0; i < m1.getrow(); i++)
 				for (j = 0; j < m1.getcol(); j++)
 					m(i, j) = m1(i, j);
@@ -606,8 +579,6 @@ namespace mmgd
 
 			size_out = build_typesci(m, m_out);
 			return size_out;
-
-
 		}
 	}
 
@@ -630,15 +601,15 @@ namespace mmgd
 			m1 = build_serie(s1);
 			m2 = build_serie(s2);
 
-			//cout << "m1=" << m1 << endl;
-			//cout << "m2=" << m2 << endl;
+			// cout << "m1=" << m1 << endl;
+			// cout << "m2=" << m2 << endl;
 
 			nbl = m1.getrow() + m2.getrow();
 			nbc = MAX(m1.getcol(), m2.getcol());
 
-			//cr�tion d'une nouvelle matrice
+			// cr�tion d'une nouvelle matrice
 			smatrix m(nbl, nbc);
-			//recopie de la matrice 1
+			// recopie de la matrice 1
 			for (i = 0; i < m1.getrow(); i++)
 				for (j = 0; j < m1.getcol(); j++)
 					m(i, j) = m1(i, j);
@@ -649,10 +620,8 @@ namespace mmgd
 
 			size_out = build_typesci(m, m_out);
 			return size_out;
-
 		}
 	}
-
 
 	/***************************************************************************************/
 	/* projection dans les causaux d'une matrice MinMax[[gamma,delta]]					   */
@@ -674,7 +643,6 @@ namespace mmgd
 			size_out = build_typesci(m, m_out);
 
 			return size_out;
-
 		}
 	}
 
@@ -702,10 +670,7 @@ namespace mmgd
 			size_out = build_typesci(n, m_out);
 
 			return size_out;
-
-
 		}
-
 	}
 
-}//fin namespace mmgd
+} // fin namespace mmgd

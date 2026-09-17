@@ -35,7 +35,7 @@ namespace mmgd
 			a = b;
 			b = r;
 		}
-		return(a);
+		return (a);
 	}
 
 	int lcm(int a, int b)
@@ -48,8 +48,7 @@ namespace mmgd
 
 		a = gcd(a, b);
 
-		return((a_sauve*b_sauve) / a);
-
+		return ((a_sauve * b_sauve) / a);
 	}
 
 }
