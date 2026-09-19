@@ -8,6 +8,9 @@
 #include "../src/serie.cpp"
 #include "../src/smatrix.cpp"
 #include "../src/tools.cpp"
+#include <fstream>
+#include <stdexcept>
+#include <string>
 
 using namespace mmgd;
 
@@ -61,12 +64,6 @@ serie seriesSum(serie left, serie right)
     return oplus(left, right);
 }
 
-// Compute the left residual of two counters: numerator \ denominator.
-serie seriesLeftResidual(serie numerator, serie denominator)
-{
-    return frac(numerator, denominator);
-}
-
 // Compute the repository's Hadamard residual used in Equation (4.11).
 serie seriesHadamardResidual(serie left, serie right)
 {
@@ -77,6 +74,85 @@ serie seriesHadamardProduct(serie left, serie right)
 {
     return hadamard_prod(left, right);
 } 
+
+// Write finite and periodic counter terms to a CSV file for the plotting script.
+void writeCounterCsv(std::ofstream &file, const std::string &subsystem,
+                     const std::string &kind, serie &counter, long horizon)
+{
+    for (unsigned int i = 0; i < counter.getp().getn(); ++i)
+    {
+        gd term = counter.getp().getpol(i);
+        if (term.getg() != infinit && term.getg() != _infinit &&
+            (term.getd() <= horizon || term.getd() == infinit))
+        {
+            file << subsystem << "," << kind << "," << term.getg() << ",";
+            if (term.getd() == infinit)
+                file << "inf";
+            else
+                file << term.getd();
+            file << "\n";
+        }
+    }
+
+    for (long repetition = 0; repetition < horizon + 2; ++repetition)
+    {
+        for (unsigned int i = 0; i < counter.getq().getn(); ++i)
+        {
+            gd term = counter.getq().getpol(i);
+            long gamma = term.getg();
+            long delta = term.getd();
+            if (gamma != infinit && gamma != _infinit)
+                gamma += repetition * counter.getr().getg();
+            if (delta != infinit && delta != _infinit)
+                delta += repetition * counter.getr().getd();
+            if (delta >= 0 && (delta <= horizon || delta == infinit))
+            {
+                file << subsystem << "," << kind << "," << gamma << ",";
+                if (delta == infinit)
+                    file << "inf";
+                else
+                    file << delta;
+                file << "\n";
+            }
+        }
+        if (counter.getr().getd() == infinit ||
+            repetition * counter.getr().getd() > horizon)
+            break;
+    }
+}
+
+// Find the largest finite time explicitly represented by a counter.
+long largestFiniteTime(serie &counter)
+{
+    long largest = 0;
+    for (unsigned int i = 0; i < counter.getp().getn(); ++i)
+        if (counter.getp().getpol(i).getd() != infinit)
+            largest = std::max(largest, counter.getp().getpol(i).getd());
+    for (unsigned int i = 0; i < counter.getq().getn(); ++i)
+        if (counter.getq().getpol(i).getd() != infinit)
+            largest = std::max(largest, counter.getq().getpol(i).getd());
+    return largest;
+}
+
+// Export the counters calculated by this executable instead of duplicating them in Python.
+void writePlotData(const std::string &path, smatrix &z1, smatrix &z2, smatrix &z3,
+                   smatrix &y1, smatrix &y2, smatrix &y3)
+{
+    std::ofstream file(path.c_str());
+    if (!file)
+        throw std::runtime_error("Could not open plot data file: " + path);
+    file << "subsystem,kind,gamma,delta\n";
+    const long horizon = std::max(
+        std::max(std::max(largestFiniteTime(z1(0, 0)), largestFiniteTime(y1(0, 0))),
+                 std::max(largestFiniteTime(z2(0, 0)), largestFiniteTime(y2(0, 0)))),
+        std::max(largestFiniteTime(z3(0, 0)), largestFiniteTime(y3(0, 0))));
+    writeCounterCsv(file, "S1", "reference", z1(0, 0), horizon);
+    writeCounterCsv(file, "S1", "output", y1(0, 0), horizon);
+    writeCounterCsv(file, "S2", "reference", z2(0, 0), horizon);
+    writeCounterCsv(file, "S2", "output", y2(0, 0), horizon);
+    writeCounterCsv(file, "S3", "reference", z3(0, 0), horizon);
+    writeCounterCsv(file, "S3", "output", y3(0, 0), horizon);
+}
 
 // Reduce the rows of a non-empty schedule matrix with the Hadamard product.
 serie bigHadamardProduct(smatrix &values)
@@ -97,18 +173,25 @@ smatrix allocationFrom(smatrix &p, smatrix &u)
 // Compute the generic mapping Fk from Equation (4.11).
 smatrix fixedPointMap(smatrix &current, smatrix &p, smatrix &h,
                       smatrix &higherAllocation, smatrix &higherRelease,
-                      smatrix &tracking, serie &resource)
+                      smatrix &tracking, smatrix &resource)
 {
     serie allocation = allocationFrom(p, current)(0, 0); // x^k_a = P^k u^k // always a counter-series
+    std::cout << allocation << " allocation " << std::endl;
     serie higherAllocationProduct = bigHadamardProduct(higherAllocation);
-    serie constrainedAllocation = allocation;
-    constrainedAllocation = seriesHadamardProduct(higherAllocationProduct, allocation);
+    std::cout << higherAllocationProduct << " higherAllocationProduct " << std::endl;
 
-    serie resourceResidual = resource;
-    resourceResidual = seriesLeftResidual(resource, constrainedAllocation);
+    smatrix constrainedAllocation = seriesHadamardProduct(higherAllocationProduct, allocation);
+    std::cout << constrainedAllocation(0, 0) << " constrainedAllocation " << std::endl;
+
+    smatrix resourceResidual = lfrac(constrainedAllocation, resource);
+    std::cout << resourceResidual(0, 0) << " resourceResidual " << std::endl;
+
     serie releaseProduct = bigHadamardProduct(higherRelease);
-    smatrix releaseResidual = releaseProduct;
-    releaseResidual(0, 0) = seriesHadamardResidual(resourceResidual, releaseProduct);
+    std::cout << releaseProduct << " releaseProduct " << std::endl;
+    
+    smatrix releaseResidual = seriesHadamardResidual(resourceResidual(0, 0), releaseProduct);
+
+    std::cout << releaseResidual(0, 0) << " releaseResidual " << std::endl;
     smatrix hp = otimes(h, p);
     smatrix inputBound = lfrac(releaseResidual, hp);
     smatrix result = inf(tracking, inputBound);
@@ -118,13 +201,13 @@ smatrix fixedPointMap(smatrix &current, smatrix &p, smatrix &h,
 // Iterate the generic monotone map from its tracking bound until the greatest fixed point stabilizes.
 smatrix solveFixedPoint(smatrix &p, smatrix &h,
                         smatrix &higherAllocation, smatrix &higherRelease,
-                        smatrix &tracking, serie &resource)
+                        smatrix &tracking, smatrix &resource)
 {
 
     // to find the greatest fixed point, we start with the top-element but here, we will choose
     // to start with G\z because that is something already a part of the mapping and the least-constrainted one theoretically
     smatrix current = tracking;
-    for (int iteration = 0; iteration < 1000; ++iteration)
+    for (int iteration = 0; iteration < 32; ++iteration)
     {
         smatrix next = fixedPointMap(current, p, h, higherAllocation,
                                      higherRelease, tracking, resource);
@@ -137,10 +220,9 @@ smatrix solveFixedPoint(smatrix &p, smatrix &h,
     return current;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-
-    serie resource = monomialSeries(2, 1);
+    smatrix resource = monomialSeries(2, 1);
     // G1 maps the two inputs of subsystem S1 to its output.
     smatrix G1(1, 2);
     G1(0, 0) = periodicSeries(0, 17, 1, 10);
@@ -185,10 +267,6 @@ int main()
     serie allocationS1 = seriesSum(seriesProduct(p11, u1opt(0, 0)), seriesProduct(p12, u1opt(1, 0)));
 
     serie releaseS1 = seriesProduct(h1, allocationS1);
-
-    std::cout << allocationS1 << " Allocations S1" << std::endl;
-
-    std::cout << releaseS1 << " Release S1" << std::endl;
 
     // -----------------------------------------------------------------
     // ------------------- SUBSYSTEM 2 ---------------------------------
@@ -270,6 +348,12 @@ int main()
               << ", S2=" << (meetsReference(y2opt, z2) ? "OK" : "FAILED")
               << ", S3=" << (meetsReference(y3opt, z3) ? "OK" : "FAILED")
               << std::endl;
+
+    const std::string plotDataPath =
+        argc == 3 && std::string(argv[1]) == "--plot-data"
+            ? argv[2]
+            : "misc/example4_1_plot_data.csv";
+    writePlotData(plotDataPath, z1, z2, z3, y1opt, y2opt, y3opt);
 
     return 0;
 }
