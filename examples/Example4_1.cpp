@@ -8,7 +8,6 @@
 #include "../src/serie.cpp"
 #include "../src/smatrix.cpp"
 #include "../src/tools.cpp"
-#include <vector>
 
 using namespace mmgd;
 
@@ -57,7 +56,6 @@ serie seriesInfimum(serie left, serie right)
     return inf(left, right);
 }
 
-// Compute the semiring sum used when multiplying a row vector by a column vector.
 serie seriesSum(serie left, serie right)
 {
     return oplus(left, right);
@@ -69,7 +67,7 @@ serie seriesLeftResidual(serie numerator, serie denominator)
     return frac(numerator, denominator);
 }
 
-// Compute the production-library approximation of the Hadamard residual in Equation (4.11).
+// Compute the repository's Hadamard residual used in Equation (4.11).
 serie seriesHadamardResidual(serie left, serie right)
 {
     return hadamard_res(right, left);
@@ -80,84 +78,63 @@ serie seriesHadamardProduct(serie left, serie right)
     return hadamard_prod(left, right);
 } 
 
-// Reduce a non-empty list of higher-priority schedules with the Hadamard product.
-serie bigHadamardSeries(const std::vector<serie> &values)
+// Reduce the rows of a non-empty schedule matrix with the Hadamard product.
+serie bigHadamardProduct(smatrix &values)
 {
-    serie result = values[0];
-    for (size_t i = 1; i < values.size(); ++i)
-        result = seriesHadamardProduct(result, values[i]);
+    serie result;
+    result = values(0, 0);
+    for (int i = 1; i < values.getrow(); ++i)
+        result = seriesHadamardProduct(result, values(i, 0));
     return result;
 }
 
-// Evaluate a row vector P against the current input vector u using semiring matrix multiplication.
-serie allocationFrom(const std::vector<serie> &p, const std::vector<serie> &u)
+// Evaluate a row matrix P against a column matrix u using semiring matrix multiplication.
+smatrix allocationFrom(smatrix &p, smatrix &u)
 {
-    serie result = seriesProduct(p[0], u[0]);
-    for (size_t i = 1; i < p.size(); ++i)
-        result = seriesSum(result, seriesProduct(p[i], u[i]));
-    return result;
+    return otimes(p, u);
 }
 
 // Compute the generic mapping Fk from Equation (4.11).
-std::vector<serie> fixedPointMap(const std::vector<serie> &current,
-                                 const std::vector<serie> &p,
-                                 const serie &h,
-                                 const std::vector<serie> &higherAllocation,
-                                 const std::vector<serie> &higherRelease,
-                                 const std::vector<serie> &tracking,
-                                 const serie &resource)
+smatrix fixedPointMap(smatrix &current, smatrix &p, smatrix &h,
+                      smatrix &higherAllocation, smatrix &higherRelease,
+                      smatrix &tracking, serie &resource)
 {
-    std::vector<serie> result;
-    serie allocation = allocationFrom(p, current); //x^k_a = P^k u^k
-    serie higherAllocationProduct = bigHadamardSeries(higherAllocation); // Hadamard product of higher-priority x^i_a
-    serie constrainedAllocation = hadamard_prod(higherAllocationProduct, allocation); // Hadamard product with x^k_a
-    serie resourceValue = resource;
-    // Equation (4.11) uses ordinary left-residuation b \ (...), not Hadamard residual.
-    serie resourceResidual = seriesLeftResidual(resourceValue, constrainedAllocation);
-    serie releaseResidual = seriesHadamardResidual(resourceResidual, bigHadamardSeries(higherRelease)); // gets constraint from higher-priority releases
+    serie allocation = allocationFrom(p, current)(0, 0); // x^k_a = P^k u^k // always a counter-series
+    serie higherAllocationProduct = bigHadamardProduct(higherAllocation);
+    serie constrainedAllocation = allocation;
+    constrainedAllocation = seriesHadamardProduct(higherAllocationProduct, allocation);
 
-    // compare each column of
-    for (size_t i = 0; i < current.size(); ++i)
-    {
-        // Residuation by Hk Pk is component-wise because each input is a column of Hk Pk.
-        serie inputBound = seriesLeftResidual(releaseResidual, seriesProduct(h, p[i])); //h^kp^k left-res star
-        result.push_back(seriesInfimum(seriesInfimum(tracking[i], inputBound), current[i]));
-    }
-    return result;
+    serie resourceResidual = resource;
+    resourceResidual = seriesLeftResidual(resource, constrainedAllocation);
+    serie releaseProduct = bigHadamardProduct(higherRelease);
+    smatrix releaseResidual = releaseProduct;
+    releaseResidual(0, 0) = seriesHadamardResidual(resourceResidual, releaseProduct);
+    smatrix hp = otimes(h, p);
+    smatrix inputBound = lfrac(releaseResidual, hp);
+    smatrix result = inf(tracking, inputBound);
+    return inf(result, current);
 }
 
 // Iterate the generic monotone map from its tracking bound until the greatest fixed point stabilizes.
-smatrix solveFixedPoint(const std::vector<serie> &p,
-                        const serie &h,
-                        const std::vector<serie> &higherAllocation,
-                        const std::vector<serie> &higherRelease,
-                        smatrix &tracking,
-                        const serie &resource)
+smatrix solveFixedPoint(smatrix &p, smatrix &h,
+                        smatrix &higherAllocation, smatrix &higherRelease,
+                        smatrix &tracking, serie &resource)
 {
-    std::vector<serie> current;
-    for (size_t i = 0; i < p.size(); ++i)
-        current.push_back(tracking((int)i, 0));
 
-    std::vector<serie> trackingValues = current;
-    for (int iteration = 0; iteration < 32; ++iteration)
+    // to find the greatest fixed point, we start with the top-element but here, we will choose
+    // to start with G\z because that is something already a part of the mapping and the least-constrainted one theoretically
+    smatrix current = tracking;
+    for (int iteration = 0; iteration < 1000; ++iteration)
     {
-        std::vector<serie> next = fixedPointMap(current, p, h, higherAllocation,
-                                                higherRelease, trackingValues, resource);
-        bool stable = true;
-        for (size_t i = 0; i < current.size(); ++i)
-        {
-            if (!(next[i] == current[i]))
-                stable = false;
-        }
+        smatrix next = fixedPointMap(current, p, h, higherAllocation,
+                                     higherRelease, tracking, resource);
+        bool stable = next == current;
         current = next;
-        if (stable)
+        if (stable) {
             break;
+        }
     }
-
-    smatrix result((int)current.size(), 1);
-    for (size_t i = 0; i < current.size(); ++i)
-        result((int)i, 0) = current[i];
-    return result;
+    return current;
 }
 
 int main()
@@ -209,6 +186,10 @@ int main()
 
     serie releaseS1 = seriesProduct(h1, allocationS1);
 
+    std::cout << allocationS1 << " Allocations S1" << std::endl;
+
+    std::cout << releaseS1 << " Release S1" << std::endl;
+
     // -----------------------------------------------------------------
     // ------------------- SUBSYSTEM 2 ---------------------------------
     // -----------------------------------------------------------------
@@ -216,23 +197,22 @@ int main()
     smatrix s2Tracking = lfrac(z2, G2);
 
     // Pass S2's P and H together with all higher-priority schedules to the generic solver.
-    std::vector<serie> p2;
-    p2.push_back(monomialSeries(0, 5));
-    p2.push_back(monomialSeries(0, 0));
-    std::vector<serie> higherAllocationsForS2;
-    higherAllocationsForS2.push_back(allocationS1);
-
-    std::vector<serie> higherReleasesForS2;
-    higherReleasesForS2.push_back(releaseS1);
-
-    serie h2 = monomialSeries(0, 4);
+    smatrix p2(1, 2);
+    p2(0, 0) = monomialSeries(0, 5);
+    p2(0, 1) = monomialSeries(0, 0);
+    smatrix higherAllocationsForS2(1, 1);
+    higherAllocationsForS2(0, 0) = allocationS1;
+    smatrix higherReleasesForS2(1, 1);
+    higherReleasesForS2(0, 0) = releaseS1;
+    smatrix h2(monomialSeries(0, 4));
 
     smatrix u2opt = solveFixedPoint(p2, h2,
                                     higherAllocationsForS2, higherReleasesForS2,
                                     s2Tracking, resource);
     // Compute S2's allocation and release schedules for use by the S3 fixed-point map.
-    serie allocationS2Value = allocationFrom(p2, {u2opt(0, 0), u2opt(1, 0)});
-    serie releaseS2 = seriesProduct(monomialSeries(0, 4), allocationS2Value);
+    smatrix allocationS2Value = allocationFrom(p2, u2opt);
+    smatrix h2Release(monomialSeries(0, 4));
+    smatrix releaseS2 = otimes(h2Release, allocationS2Value);
 
     // -----------------------------------------------------------------
     // ------------------- SUBSYSTEM 3 ---------------------------------
@@ -240,15 +220,16 @@ int main()
     // The tracking bound for S3 is the scalar residual G3 \ z3.
     smatrix s3TrackingMatrix = lfrac(z3, G3);
     // Pass both higher-priority schedules to the same generic solver for S3.
-    std::vector<serie> p3;
-    p3.push_back(monomialSeries(0, 0));
-    std::vector<serie> higherAllocationsForS3;
-    higherAllocationsForS3.push_back(allocationS1);
-    higherAllocationsForS3.push_back(allocationS2Value);
-    std::vector<serie> higherReleasesForS3;
-    higherReleasesForS3.push_back(releaseS1);
-    higherReleasesForS3.push_back(releaseS2);
-    smatrix u3opt = solveFixedPoint(p3, monomialSeries(0, 3),
+    smatrix p3(1, 1);
+    p3(0, 0) = monomialSeries(0, 0);
+    smatrix higherAllocationsForS3(2, 1);
+    higherAllocationsForS3(0, 0) = allocationS1;
+    higherAllocationsForS3(1, 0) = allocationS2Value(0, 0);
+    smatrix higherReleasesForS3(2, 1);
+    higherReleasesForS3(0, 0) = releaseS1;
+    higherReleasesForS3(1, 0) = releaseS2(0, 0);
+    smatrix h3(monomialSeries(0, 3));
+    smatrix u3opt = solveFixedPoint(p3, h3,
                                     higherAllocationsForS3, higherReleasesForS3,
                                     s3TrackingMatrix, resource);
 
