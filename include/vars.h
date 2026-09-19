@@ -25,6 +25,5 @@ namespace mmgd
 	gd epsilon(infinit, _infinit);
 	gd e(0, 0);
 	serie eps;
-
 }
 #endif
