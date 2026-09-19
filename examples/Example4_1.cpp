@@ -135,13 +135,18 @@ long largestFiniteTime(serie &counter)
 }
 
 // Export the counters calculated by this executable instead of duplicating them in Python.
-void writePlotData(const std::string &path, smatrix &z1, smatrix &z2, smatrix &z3,
-                   smatrix &y1, smatrix &y2, smatrix &y3)
+void writePlotData(const std::string &path, smatrix &resource,
+                   smatrix &z1, smatrix &z2, smatrix &z3,
+                   smatrix &y1, smatrix &y2, smatrix &y3,
+                   smatrix &allocationS1, smatrix &allocationS2,
+                   smatrix &allocationS3, smatrix &releaseS1,
+                   smatrix &releaseS2, smatrix &releaseS3)
 {
     std::ofstream file(path.c_str());
     if (!file)
         throw std::runtime_error("Could not open plot data file: " + path);
     file << "subsystem,kind,gamma,delta\n";
+    file << "RESOURCE,tokens," << resource(0, 0).getq().getpol(0).getg() << ",inf\n";
     const long horizon = std::max(
         std::max(std::max(largestFiniteTime(z1(0, 0)), largestFiniteTime(y1(0, 0))),
                  std::max(largestFiniteTime(z2(0, 0)), largestFiniteTime(y2(0, 0)))),
@@ -152,6 +157,12 @@ void writePlotData(const std::string &path, smatrix &z1, smatrix &z2, smatrix &z
     writeCounterCsv(file, "S2", "output", y2(0, 0), horizon);
     writeCounterCsv(file, "S3", "reference", z3(0, 0), horizon);
     writeCounterCsv(file, "S3", "output", y3(0, 0), horizon);
+    writeCounterCsv(file, "S1", "allocation", allocationS1(0, 0), horizon);
+    writeCounterCsv(file, "S2", "allocation", allocationS2(0, 0), horizon);
+    writeCounterCsv(file, "S3", "allocation", allocationS3(0, 0), horizon);
+    writeCounterCsv(file, "S1", "release", releaseS1(0, 0), horizon);
+    writeCounterCsv(file, "S2", "release", releaseS2(0, 0), horizon);
+    writeCounterCsv(file, "S3", "release", releaseS3(0, 0), horizon);
 }
 
 // Reduce the rows of a non-empty schedule matrix with the Hadamard product.
@@ -310,6 +321,8 @@ int main(int argc, char **argv)
     smatrix u3opt = solveFixedPoint(p3, h3,
                                     higherAllocationsForS3, higherReleasesForS3,
                                     s3TrackingMatrix, resource);
+    smatrix allocationS3Value = allocationFrom(p3, u3opt);
+    smatrix releaseS3 = otimes(h3, allocationS3Value);
 
     // -----------------------------------------------------------------
     // ------------------- Outputs -------------------------------------
@@ -353,7 +366,11 @@ int main(int argc, char **argv)
         argc == 3 && std::string(argv[1]) == "--plot-data"
             ? argv[2]
             : "misc/example4_1_plot_data.csv";
-    writePlotData(plotDataPath, z1, z2, z3, y1opt, y2opt, y3opt);
+    smatrix allocationS1Matrix(allocationS1);
+    smatrix releaseS1Matrix(releaseS1);
+    writePlotData(plotDataPath, resource, z1, z2, z3, y1opt, y2opt, y3opt,
+                  allocationS1Matrix, allocationS2Value, allocationS3Value,
+                  releaseS1Matrix, releaseS2, releaseS3);
 
     return 0;
 }
