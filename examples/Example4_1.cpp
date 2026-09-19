@@ -69,7 +69,7 @@ serie seriesLeftResidual(serie numerator, serie denominator)
     return frac(numerator, denominator);
 }
 
-// Compute the Hadamard residual represented by ]^{-1} in Equation (4.11).
+// Compute the production-library approximation of the Hadamard residual in Equation (4.11).
 serie seriesHadamardResidual(serie left, serie right)
 {
     return hadamard_res(right, left);
@@ -80,7 +80,7 @@ serie seriesHadamardProduct(serie left, serie right)
     return hadamard_prod(left, right);
 } 
 
-// Reduce a non-empty list of higher-priority schedules with the componentwise hadamard product.
+// Reduce a non-empty list of higher-priority schedules with the Hadamard product.
 serie bigHadamardSeries(const std::vector<serie> &values)
 {
     serie result = values[0];
@@ -109,11 +109,12 @@ std::vector<serie> fixedPointMap(const std::vector<serie> &current,
 {
     std::vector<serie> result;
     serie allocation = allocationFrom(p, current); //x^k_a = P^k u^k
-    serie higherAllocationMeet = bigHadamardSeries(higherAllocation); //hadamard prod of higher x^k_a 
-    serie constrainedAllocation = hadamard_prod(higherAllocationMeet, allocation); // hadamard b/w higher allocs and current alloc
+    serie higherAllocationProduct = bigHadamardSeries(higherAllocation); // Hadamard product of higher-priority x^i_a
+    serie constrainedAllocation = hadamard_prod(higherAllocationProduct, allocation); // Hadamard product with x^k_a
     serie resourceValue = resource;
-    serie resourceResidual = hadamard_res(resourceValue, constrainedAllocation); // resource left-div by constrainted allocs
-    serie releaseResidual = seriesHadamardResidual(resourceResidual, bigHadamardSeries(higherRelease)); // gets constraint from alloc-release (star)
+    // Equation (4.11) uses ordinary left-residuation b \ (...), not Hadamard residual.
+    serie resourceResidual = seriesLeftResidual(resourceValue, constrainedAllocation);
+    serie releaseResidual = seriesHadamardResidual(resourceResidual, bigHadamardSeries(higherRelease)); // gets constraint from higher-priority releases
 
     // compare each column of
     for (size_t i = 0; i < current.size(); ++i)
@@ -200,10 +201,11 @@ int main()
     smatrix u1opt = lfrac(z1, G1);
     // P1 = [e d2, e d9(1 d10)*] maps u1 to S1's allocation schedule.
     serie p11 = monomialSeries(0, 2);
-    serie u12_ht = monomialSeries(0, 0);
+    // P12 = e d0: this is the input-to-allocation block before the allocation transition.
+    serie p12 = monomialSeries(0, 0);
     serie h1 = monomialSeries(0, 6);
 
-    serie allocationS1 = seriesSum(seriesProduct(p11, u1opt(0, 0)), seriesProduct(u12_ht, u1opt(1, 0)));
+    serie allocationS1 = seriesSum(seriesProduct(p11, u1opt(0, 0)), seriesProduct(p12, u1opt(1, 0)));
 
     serie releaseS1 = seriesProduct(h1, allocationS1);
 
